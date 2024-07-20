@@ -29,6 +29,10 @@ struct Cli {
 enum Commands {
     // explain a command / concept
     Explanation {
+        #[arg(trailing_var_arg = true)]
+        /// input to send in prompt
+        user_input: Option<Vec<String>>,
+
         #[arg(short, long)]
         verbose: bool,
     },
@@ -135,8 +139,15 @@ async fn main() -> Result<(), ()> {
             let data = read_file_content(file);
             print!("contents:\n{}", data);
         }
-        Some(Explanation { verbose }) => {
-            println!("explaining with verbose: {:?}", verbose);
+        Some(Explanation { user_input, verbose }) => {
+            match user_input {
+                Some(input) => {
+                    println!("explaining {} with verbose: {:?}", input.join(" "), verbose);
+                }
+                None => {
+                    println!("asking user what they want to explain");
+                }
+            }
         }
         Some(Usage {}) => {
             println!("getting usage");
