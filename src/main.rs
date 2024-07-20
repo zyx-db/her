@@ -8,6 +8,8 @@ use clap::{Parser, Subcommand};
 use rev_buf_reader::RevBufReader;
 use serde_derive::{Deserialize, Serialize};
 
+mod prompts;
+
 const HISTORY_LINE_COUNT: u32 = 10;
 const USAGE_ENDPOINT: &str = "https://api.openai.com/v1/usage";
 
@@ -139,16 +141,17 @@ async fn main() -> Result<(), ()> {
             let data = read_file_content(file);
             print!("contents:\n{}", data);
         }
-        Some(Explanation { user_input, verbose }) => {
-            match user_input {
-                Some(input) => {
-                    println!("explaining {} with verbose: {:?}", input.join(" "), verbose);
-                }
-                None => {
-                    println!("asking user what they want to explain");
-                }
+        Some(Explanation {
+            user_input,
+            verbose,
+        }) => match user_input {
+            Some(input) => {
+                println!("explaining {} with verbose: {:?}", input.join(" "), verbose);
             }
-        }
+            None => {
+                println!("asking user what they want to explain");
+            }
+        },
         Some(Usage {}) => {
             println!("getting usage");
             get_usage(&cfg).await;
