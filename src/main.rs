@@ -1,8 +1,12 @@
-use std::{fs::File, io::{BufRead, Read}, path::PathBuf};
+use std::{
+    fs::File,
+    io::{BufRead, Read},
+    path::PathBuf,
+};
 
 use clap::{Parser, Subcommand};
 use rev_buf_reader::RevBufReader;
-use serde_derive::{Serialize, Deserialize};
+use serde_derive::{Deserialize, Serialize};
 
 const HISTORY_LINE_COUNT: u32 = 10;
 const USAGE_ENDPOINT: &str = "https://api.openai.com/v1/usage";
@@ -40,7 +44,7 @@ enum Commands {
     },
 
     // get usage in tokens, and bill
-    Usage {}
+    Usage {},
 }
 
 #[derive(Serialize, Deserialize)]
@@ -52,7 +56,7 @@ struct MyConfig {
 #[derive(Deserialize, Debug)]
 struct UsageResponse {
     object: String,
-    data: Vec<serde_json::Value>,  // Adjust types based on actual response structure
+    data: Vec<serde_json::Value>, // Adjust types based on actual response structure
     tpm_data: Vec<serde_json::Value>,
     ft_data: Vec<serde_json::Value>,
     dalle_api_data: Vec<serde_json::Value>,
@@ -66,7 +70,7 @@ impl ::std::default::Default for MyConfig {
     fn default() -> Self {
         Self {
             api_key: "".into(),
-            history_file: "".into()
+            history_file: "".into(),
         }
     }
 }
@@ -97,18 +101,19 @@ fn read_history(history_file: &PathBuf, lines: u32) -> Vec<String> {
 fn read_file_content(path: &PathBuf) -> String {
     let mut file = File::open(path).expect("unable to open file!");
     let mut buf = String::new();
-    file.read_to_string(&mut buf).expect("could not read file contents");
+    file.read_to_string(&mut buf)
+        .expect("could not read file contents");
     buf
 }
 
-async fn get_usage(cfg: &MyConfig){
+async fn get_usage(cfg: &MyConfig) {
     let client = reqwest::Client::new();
     let resp = client
-            .get(USAGE_ENDPOINT.to_string() + "?date=2024-07-01")
-            .bearer_auth(&cfg.api_key)
-            .send()
-            .await
-            .expect("failed to send request for usage");
+        .get(USAGE_ENDPOINT.to_string() + "?date=2024-07-01")
+        .bearer_auth(&cfg.api_key)
+        .send()
+        .await
+        .expect("failed to send request for usage");
     let data: UsageResponse = resp.json().await.expect("failed to get text from response");
     println!("{:?}", data);
 }
@@ -119,7 +124,7 @@ async fn main() -> Result<(), ()> {
     let cfg: MyConfig = confy::load("her", None).expect("error with config");
     use Commands::*;
     match &cli.command {
-        Some(Suggestions {  }) => {
+        Some(Suggestions {}) => {
             let history = read_history(&cfg.history_file, HISTORY_LINE_COUNT);
             for (i, line) in history.iter().enumerate() {
                 print!("line {}: {}", i + 1, line)
@@ -129,7 +134,7 @@ async fn main() -> Result<(), ()> {
             println!("summarizing file: {:?}", file);
             let data = read_file_content(file);
             print!("contents:\n{}", data);
-       }
+        }
         Some(Explanation { verbose }) => {
             println!("explaining with verbose: {:?}", verbose);
         }
@@ -137,16 +142,14 @@ async fn main() -> Result<(), ()> {
             println!("getting usage");
             get_usage(&cfg).await;
         }
-        None => {
-            match &cli.user_input {
-                Some(words) => {
-                    println!("opening cli chat with input: {:?}", words.join(" "));
-                }
-                None => {
-                    println!("opening chat");
-                }
+        None => match &cli.user_input {
+            Some(words) => {
+                println!("opening cli chat with input: {:?}", words.join(" "));
             }
-        }
+            None => {
+                println!("opening chat");
+            }
+        },
     }
     Ok(())
 }
