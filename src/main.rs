@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs::File, io::{BufRead, Read}, path::PathBuf};
+use std::{fs::File, io::{BufRead, Read}, path::PathBuf};
 
 use clap::{Parser, Subcommand};
 use rev_buf_reader::RevBufReader;
